@@ -1,10 +1,17 @@
-import requests
+import requests # type: ignore
 import json
 
-url = "https://api.clashroyale.com/v1/players/%23PLAYER_TAG"
-headers = {
-"Authorization":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImFmMDIxMGMyLTI3OTYtNDZkNy1hMGZhLWU1OTg4NmQ0Y2NmYSIsImlhdCI6MTc3NjM0NDg2OCwic3ViIjoiZGV2ZWxvcGVyLzRjNWEzYjU0LTg4OGYtZjM4ZS00NTExLWNkOWFlYmRhOTJlOCIsInNjb3BlcyI6WyJyb3lhbGUiXSwibGltaXRzIjpbeyJ0aWVyIjoiZGV2ZWxvcGVyL3NpbHZlciIsInR5cGUiOiJ0aHJvdHRsaW5nIn0seyJjaWRycyI6WyIxMDAuMTAxLjc3LjI0Il0sInR5cGUiOiJjbGllbnQifV19.6Le64-u1uMvSwxrcjgsDsOXAB8Do3Y9Asi4c8vROyNoiBh3umGXOSOjdS67EEebVIVY9kilVbBtGP7odkf93Jg"
-}
 
-response = requests.get(url, headers=headers)
-print(response.json())
+import Jokes # Import the Jokes class # type: ignore
+import asyncio
+
+async def print_joke():
+    j = await Jokes()  # Initialise the class
+    joke = await j.get_joke()  # Retrieve a random joke
+    if joke["type"] == "single": # Print the joke
+        print(joke["joke"])
+    else:
+        print(joke["setup"])
+        print(joke["delivery"])
+
+asyncio.run(print_joke())
