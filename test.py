@@ -1,17 +1,13 @@
-import requests # type: ignore
-import json
+import requests
+
+from balldontlie import BalldontlieAPI
+
+# Initialize with your API key
+api = BalldontlieAPI(api_key="783897db-dbe2-4176-8821-e9e0cf0820e1")
+
+# Example: Fetch NBA teams
+teams = api.nba.teams.list()
+for team in teams:
+    print(team[1])
 
 
-import Jokes # Import the Jokes class # type: ignore
-import asyncio
-
-async def print_joke():
-    j = await Jokes()  # Initialise the class
-    joke = await j.get_joke()  # Retrieve a random joke
-    if joke["type"] == "single": # Print the joke
-        print(joke["joke"])
-    else:
-        print(joke["setup"])
-        print(joke["delivery"])
-
-asyncio.run(print_joke())
