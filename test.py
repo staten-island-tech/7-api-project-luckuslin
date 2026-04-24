@@ -1,35 +1,21 @@
 import tkinter as tk
+from tkinter import messagebox
 import requests
 import random
 
-API_URL = "https://www.balldontlie.io/api/v1/teams"
-def fetch_teams(self):
-    headers = {
-        "Authorization": "f9eb4f44-79b4-48c2-9e40-38d25c59b741"  # <-- replace this
-    }
+API_URL = "https://api.balldontlie.io/v1/teams"
 
-    response = requests.get(API_URL, headers=headers)
-
-    print("STATUS:", response.status_code)
-    print("RESPONSE:", response.text[:300])  # 👈 THIS is the key
-
-    if response.status_code != 200:
-        print("Request failed.")
-        return []
-
-    try:
-        data = response.json()
-        return data.get("data", [])
-    except Exception as e:
-        print("JSON PARSE ERROR:", e)
-        return []
-class NBAQuizApp:
+class NBAGuessGame:
     def __init__(self, root):
         self.root = root
-        self.root.title("NBA Team Guessing Game")
+        self.root.title("🏀 Guess the NBA Team")
 
-        self.teams = self.fetch_teams()
+        self.teams = []
         self.current_team = None
+        self.hint_level = 0
+        self.score = 0
+
+        self.fetch_teams()
 
         self.label = tk.Label(root, text="Guess the NBA Team!", font=("Arial", 16))
         self.label.pack(pady=10)
@@ -37,66 +23,82 @@ class NBAQuizApp:
         self.hint_label = tk.Label(root, text="", font=("Arial", 12))
         self.hint_label.pack(pady=5)
 
-        self.button_frame = tk.Frame(root)
-        self.button_frame.pack(pady=10)
+        self.dropdown_var = tk.StringVar(root)
+        self.dropdown = tk.OptionMenu(root, self.dropdown_var, [])
+        self.dropdown.pack(pady=10)
 
-        self.result_label = tk.Label(root, text="", font=("Arial", 12))
-        self.result_label.pack(pady=10)
+        self.guess_button = tk.Button(root, text="Submit Guess", command=self.check_guess)
+        self.guess_button.pack(pady=5)
 
-        self.next_btn = tk.Button(root, text="Next Team", command=self.new_round)
-        self.next_btn.pack(pady=5)
+        self.hint_button = tk.Button(root, text="Get Hint", command=self.show_hint)
+        self.hint_button.pack(pady=5)
 
-        self.choice_buttons = []
-        for i in range(4):
-            btn = tk.Button(self.button_frame, text="", width=25,
-                            command=lambda i=i: self.check_guess(i))
-            btn.grid(row=i, column=0, pady=5)
-            self.choice_buttons.append(btn)
+        self.score_label = tk.Label(root, text="Score: 0", font=("Arial", 12))
+        self.score_label.pack(pady=10)
+
+        self.next_button = tk.Button(root, text="Next Team", command=self.new_round)
+        self.next_button.pack(pady=5)
 
         self.new_round()
 
     def fetch_teams(self):
-        response = requests.get(API_URL)
-        data = response.json()
-        return data["data"]
+        try:
+            headers = {
+            "Authorization": API_KEY
+        }
+
+            response = requests.get(API_URL, headers=headers)
+            data = response.json()
+            self.teams = data["data"]
+
+        team_names = [team["full_name"] for team in self.teams]
+        self.dropdown["menu"].delete(0, "end")
+
+        for name in team_names:
+            self.dropdown["menu"].add_command(
+                label=name,
+                command=tk._setit(self.dropdown_var, name)
+            )
+
+        self.dropdown_var.set(team_names[0])
+
+        except Exception as e:
+    messagebox.showerror("Error", f"Failed to fetch teams:\n{}")
 
     def new_round(self):
         self.current_team = random.choice(self.teams)
-        self.result_label.config(text="")
+        self.hint_level = 0
+        self.hint_label.config(text="New team selected! Click 'Get Hint'")
 
-        # Hint
-        hint = f"Hint: {self.current_team['conference']} Conference, {self.current_team['division']} Division"
-        self.hint_label.config(text=hint)
+    def show_hint(self):
+        if not self.current_team:
+            return
 
-        # Generate choices
-        choices = [self.current_team]
-        while len(choices) < 4:
-            team = random.choice(self.teams)
-            if team not in choices:
-                choices.append(team)
+        hints = [
+            f"Conference: {self.current_team['conference']}",
+            f"Division: {self.current_team['division']}",
+            f"City: {self.current_team['city']}",
+        ]
 
-        random.shuffle(choices)
-        self.correct_index = choices.index(self.current_team)
-
-        # Update buttons
-        for i, btn in enumerate(self.choice_buttons):
-            btn.config(text=choices[i]["full_name"], state=tk.NORMAL)
-
-    def check_guess(self, index):
-        if index == self.correct_index:
-            self.result_label.config(text="✅ Correct!", fg="green")
+        if self.hint_level < len(hints):
+            self.hint_label.config(text=hints[self.hint_level])
+            self.hint_level += 1
         else:
-            correct_name = self.current_team["full_name"]
-            self.result_label.config(
-                text=f"❌ Wrong! It was {correct_name}",
-                fg="red"
-            )
+            self.hint_label.config(text="No more hints!")
 
-        # Disable buttons after answer
-        for btn in self.choice_buttons:
-            btn.config(state=tk.DISABLED)
+    def check_guess(self):
+        guess = self.dropdown_var.get()
+        correct = self.current_team["full_name"]
+
+        if guess == correct:
+            self.score += 1
+            messagebox.showinfo("Correct!", f"Nice! It was {correct}")
+        else:
+            messagebox.showerror("Wrong!", f"It was {correct}")
+
+        self.score_label.config(text=f"Score: {self.score}")
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = NBAQuizApp(root)
+    app = NBAGuessGame(root)
     root.mainloop()

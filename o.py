@@ -31,3 +31,5 @@ teams=[
     {'id': 30, 'conference': 'East', 'division': 'Southeast', 'city': 'Washington', 'name': 'Wizards', 'full_name': 'Washington Wizards', 'abbreviation': 'WAS'},
 
 ]
+
+print (teams.items('id'))
