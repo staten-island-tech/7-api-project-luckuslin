@@ -17,6 +17,7 @@ class NBAGuessGame:
         self.current_team = None
         self.hint_level = 0
         self.score = 0
+        self.rounds_played = 0
 
         self.build_ui()
         self.fetch_teams()
@@ -36,6 +37,9 @@ class NBAGuessGame:
 
         self.score_label = tk.Label(self.root, text="Score: 0", font=("Arial", 12))
         self.score_label.pack(pady=10)
+
+        self.rounds_label = tk.Label(self.root, text="Rounds: 0", font=("Arial", 12))
+        self.rounds_label.pack(pady=5)
 
         tk.Button(self.root, text="Next Team", command=self.new_round).pack(pady=5)
 
@@ -83,10 +87,13 @@ class NBAGuessGame:
         if not self.teams:
             return
 
+        self.rounds_played += 1
+        self.rounds_label.config(text=f"Rounds: {self.rounds_played}")
+
         self.current_team = random.choice(self.teams)
         self.hint_level = 0
         self.hint_label.config(text="New team selected! Click 'Get Hint'")
-        self.dropdown_var.set("")
+        self.dropdown_var.set(self.teams[0]["full_name"])
 
     def show_hint(self):
         if not self.current_team:
@@ -95,11 +102,11 @@ class NBAGuessGame:
         
 
         hints = [
-            f"Conference: {self.current_team['conference']}",
-            f"Division: {self.current_team['division']}",
-            f"Name length: {len(self.current_team['full_name'])}",
-            f"First letter: {self.current_team['full_name'][0]}",
-            f"City: {self.current_team['city']}",
+            f"This team plays in the {self.current_team['conference']}ern Conference.",
+            f"This team is in the {self.current_team['division']} Division",
+            f"This team has {len(self.current_team['full_name'])} letters in the name",
+            f"Its first letter is: {self.current_team['full_name'][0]}",
+            f"This team plays in: {self.current_team['city']}",
             ]
 
         if self.hint_level < len(hints):
@@ -117,23 +124,25 @@ class NBAGuessGame:
         correct = self.current_team["full_name"]
 
         if guess == correct:
-            if self.hint_level == 4:
-                self.score += 0.5
-                self.hint_level == 0
-            elif self.hint_level <= 4:
-                self.score += 1
-                self.hint_level == 0
-            elif self.hint_level <= 2:
+            if self.hint_level <= 1:
                 self.score += 5
-                self.hint_level == 0
+            elif self.hint_level <= 3:
+                self.score += 2
+            else:
+                self.score += 1
+
+            self.hint_level = 0
 
             messagebox.showinfo("Correct!", f"Nice! It was {correct}")
         else:
             messagebox.showerror("Wrong!", f"It was {correct}")
             
-
-        self.score_label.config(text=f"Score: {self.score}")
+        self.rounds_played += 1
+        self.rounds_label.config(text=f"Rounds: {self.rounds_played}")
         
+        self.score_label.config(text=f"Score: {self.score}")
+
+    
 
 
 if __name__ == "__main__":
